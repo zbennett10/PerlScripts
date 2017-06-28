@@ -2,28 +2,28 @@
 use strict;
 use warnings;
 
-#this is a script for enumerating over every json file in a folder and importing it into mongodb
+#this is a script getting every collection name in a database and exporting it as json
 
-my ($database, $collectionNames, $directoryPath) = @ARGV;
-my @collections = split(',', $collectionNames);
-
+my ($database, $directoryPath) = @ARGV;
 
 
 if(! $database) { #check for required database argument
     die "A database argument must be provided to the script. Ex: perl mongorestore.pl wasp";
 }
 
-if(scalar @collections < 1) {
-    die "Must provide a comma seperated list of collections to export.";
-}
-
-
 #if a directory path is not given in arguments, operate in the current directory.
 if(!$directoryPath) {
     $directoryPath = '.';
 }
 
-exportMongoCollections(@collections);
+my $collectionString = `mongo wasp --quiet --eval db.getCollectionNames()`;
+my @collectionNames;
+
+while($collectionString =~ /(\w+)/g) {
+    push(@collectionNames, $1);
+}
+
+exportMongoCollections(@collectionNames);
 #subroutine that takes an array of json files and imports them to the given mongodb database
 sub exportMongoCollections {
     foreach my $collection (@_) {
