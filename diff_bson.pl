@@ -3,6 +3,9 @@ use strict;
 use warnings;
 
 #take in a path to a bson file and a path to a json file
+my ($bsonPath, $jsonPath) = @ARGV;
+
+
 #bsondump the bson file to a json file
 #create an empty hash table
 #find the differences between the files by line
