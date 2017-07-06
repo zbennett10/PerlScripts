@@ -30,20 +30,43 @@ close $jsonFile;
 my $bsonLineLength = scalar @bsonLines;
 my $jsonLineLength = scalar @jsonLines;
 my $checkLength = max($bsonLineLength, $jsonLineLength);
+my $differenceCount = 0;
 
-for(my $i = 0; $i < $checkLength; $i++) {
+#compare bson file line by line with json file
+
+MAIN: for(my $i = 0; $i < $checkLength; $i++) {
     my $bsonLine = $bsonLines[$i];
     my $jsonLine = $jsonLines[$i];
-    if($bsonLine ne $jsonLine && length($bsonLine) > length($jsonLine)) {
-        print $i + 1, ' ++++'.$bsonLine."\n";
-        print $i + 1, ' ----'.$jsonLine."\n";
-    }
 
-    if($bsonLine ne $jsonLine && length($jsonLine) > length($bsonLine)) {
-        print $i + 1, ' ++++'.$jsonLine."\n";
-        print $i + 1, ' ----'.$bsonLine."\n";
-        print "\n";
-    }
+    if($bsonLine ne $jsonLine) {
+
+        #check if line is in json file but has moved
+        for(my $j = $i + 1; $j < length(@jsonLines); $j++) {
+            if($bsonLine eq $jsonLines[$j]) {
+                print 'Line moved -- '.$bsonLine." from line ", $i + 1, " to ", $j + 1.;
+                $differenceCount++;
+                next MAIN;
+            }
+        }
+
+        #the line isn't found - if json file is longer
+        if(scalar @jsonLines > scalar @bsonLines) {
+            print $i + 1, ' -----'.$jsonLine."\n";
+            $differenceCount++;
+        }
+
+        if(scalar @bsonLines > scalar @jsonLines) {
+            print $i + 1, ' +++++'.$bsonLine."\n";
+            $differenceCount++;
+        }
+
+    } 
+}
+
+if($differenceCount > 0) {
+    print "\nFound ".$differenceCount." line differences.\n";
+} else {
+    print "\nNo differences found.\n";
 }
 
 #fix the above to determine if records were removed and display the removed records
