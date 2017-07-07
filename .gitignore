@@ -1,1 +1,3 @@
-practice.json
+/dump
+*.json
+*.bson
