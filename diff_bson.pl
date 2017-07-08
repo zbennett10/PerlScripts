@@ -2,6 +2,7 @@
 use strict;
 use List::Util qw[min max];
 
+
 #take in a path to a bson file and a path to a json file
 my ($bsonPath, $jsonPath) = @ARGV;
 
@@ -25,12 +26,20 @@ while(my $line = <$jsonFile>) {
 
 
 close $outputJSON;
+unlink "";
 close $jsonFile;
 
 my $bsonLineLength = scalar @bsonLines;
 my $jsonLineLength = scalar @jsonLines;
 my $checkLength = max($bsonLineLength, $jsonLineLength);
 my $differenceCount = 0;
+
+if($bsonPath =~ /.*\/(.*)/g) {
+    $bsonPath =~ /.*\/(.*)/g;
+    print "\n", $1, "\n";
+} else {
+    print "\n", $bsonPath, "\n";
+}
 
 #compare bson file line by line with json file
 MAIN: for(my $i = 0; $i < $checkLength; $i++) {
