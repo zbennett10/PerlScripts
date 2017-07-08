@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-my $maximum = &max(3,5,10,4,6);
+my $maximum = &max(3,5,6,4,10);
 print $maximum;
 
 sub max {
