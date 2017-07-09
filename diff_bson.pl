@@ -4,61 +4,57 @@ use List::Util qw[min max];
 
 
 #take in a path to a bson file and a path to a json file
-my ($bsonPath, $jsonPath) = @ARGV;
+my ($diffeePath, $differPath) = @ARGV;
+my @diffeeLines;
+my @differLines;
 
 #bsondump the bson file to a json file
-system("bsondump --quiet $bsonPath > output.json");
-open my $outputJSON , '<', 'output.json';
-my @bsonLines;
-while(my $line = <$outputJSON>) {
-    # chomp($line);
-    # $line =~ s/\s//g;
-    push(@bsonLines, $line);
+system("bsondump --quiet $diffeePath > output.json");
+open my $outputJSON , '<', 'output.json' or die "Couldn't open file $diffeePath";
+while(<$outputJSON>) {
+    push(@diffeeLines, $_);
 }
 
-open my $jsonFile , '<', $jsonPath or die "Couldn't open";
-my @jsonLines;
-while(my $line = <$jsonFile>) {
-    # chomp($line);
-    # $line =~ s/\s//g;
-    push(@jsonLines, $line);
+open my $differFile , '<', $differPath or die "Couldn't open file $differPath";
+while(<$differFile>) {
+    push(@differLines, $_);
 }
 
 
 close $outputJSON;
 unlink "";
-close $jsonFile;
+close $differFile;
 
-my $bsonLineLength = scalar @bsonLines;
-my $jsonLineLength = scalar @jsonLines;
-my $checkLength = max($bsonLineLength, $jsonLineLength);
+my $diffeeLineCount = scalar @diffeeLines;
+my $differLineCount = scalar @differLines;
+my $checkLength = max($diffeeLineCount, $differLineCount);
 my $differenceCount = 0;
 
-if($bsonPath =~ /.*\/(.*)/g) {
-    $bsonPath =~ /.*\/(.*)/g;
+if($diffeePath =~ /.*\/(.*)/g) {
+    $diffeePath =~ /.*\/(.*)/g;
     print "\n", $1, "\n";
 } else {
-    print "\n", $bsonPath, "\n";
+    print "\n", $diffeePath, "\n";
 }
 
 #compare bson file line by line with json file
 MAIN: for(my $i = 0; $i < $checkLength; $i++) {
-    my $bsonLine = $bsonLines[$i];
-    my $jsonLine = $jsonLines[$i];
-    if($bsonLine ne $jsonLine) {
-        for(my $j =  0; $j < @jsonLines; $j++) { #check if line is in json file but has moved - if it has ignore it
-            if($bsonLine eq $jsonLines[$j]) {
+    my $diffeeLine = $diffeeLines[$i];
+    my $differLine = $differLines[$i];
+    if($diffeeLine ne $differLine) {
+        for(my $j =  0; $j < @differLines; $j++) { #check if line is in json file but has moved - if it has ignore it
+            if($diffeeLine eq $differLines[$j]) {
                 next MAIN;
             }
         }
 
-        if(@jsonLines > @bsonLines) { #the line isn't found - if json file is longer
-            print "\n", $i + 1, ' -----'.$jsonLine."\n";
+        if(@differLines > @diffeeLines) { #the line isn't found - if json file is longer
+            print "\n", $i + 1, ' -----'.$differLine."\n";
             $differenceCount++;
         }
 
-        if(@bsonLines > @jsonLines) {
-            print "\n", $i + 1, ' +++++'.$bsonLine."\n";
+        if(@diffeeLines > @differLines) {
+            print "\n", $i + 1, ' +++++'.$diffeeLine."\n";
             $differenceCount++;
         }
     } 
@@ -70,6 +66,11 @@ if($differenceCount > 0) {
     print "\nNo differences found.\n";
 }
 
+
+sub checkFileType {
+    if($_ =~ /.bson/g) {"bson";}
+    if($_ =~ /.json/g) {"json";}
+}
 
 #TODO - 
 #make the arguments interchangeable -- allow for diffing files in any order
