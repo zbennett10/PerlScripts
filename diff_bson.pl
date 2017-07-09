@@ -2,46 +2,14 @@
 use strict;
 use List::Util qw[min max];
 
-
 #take in a path to two bson files or one bson file and one json file or 2 json files
 my ($diffeePath, $differPath) = @ARGV;
 my @diffeeLines;
 my @differLines;
 
 #bsondump the bson file to a json file
-if(&checkFileType($diffeePath) eq "bson") { 
-    system("bsondump --quiet $diffeePath > tmp_diffee.json");
-    open my $diffeeJSON , '<', 'tmp_diffee.json' or die "Couldn't open file $diffeePath";
-    while(<$diffeeJSON>) {
-        push(@diffeeLines, $_);
-    }
-    close $diffeeJSON;
-}
-
-if(&checkFileType($diffeePath) eq "json") {
-    open my $diffeeJSON, '<', $diffeePath or die "Couldn't open file at $diffeePath";
-    while(<$diffeeJSON>) {
-        push(@diffeeLines, $_);
-    }
-    close $diffeeJSON;
-}
-
-if(&checkFileType($differPath) eq "bson") {
-    system("bsondump --quiet $differPath > tmp_differ.json");
-    open my $differJSON , '<', 'tmp_differ.json' or die "Couldn't open file $differPath";
-    while(<$differJSON>) {
-        push(@differLines, $_);
-    }
-    close $differPath;
-}
-
-if(&checkFileType($differPath) eq "json") {
-    open my $differJSON , '<', $differPath or die "Couldn't open file $differPath";
-    while(<$differJSON>) {
-        push(@differLines, $_);
-    }
-    close $differPath;
-}
+&readFile($diffeePath, "diffee");
+&readFile($differPath, "differ");
 
 unlink "tmp_differ.json";
 unlink "tmp_diffee.json";
@@ -53,9 +21,9 @@ my $differenceCount = 0;
 
 if($diffeePath =~ /.*\/(.*)/g) {
     $diffeePath =~ /.*\/(.*)/g;
-    print "\n", $1, "\n";
+    print "\n", $1, " compared to $differPath\n";
 } else {
-    print "\n", $diffeePath, "\n";
+    print "\n", $diffeePath, " compared to $differPath\n";
 }
 
 #compare bson file line by line with json file
@@ -87,13 +55,38 @@ if($differenceCount > 0) {
     print "\nNo differences found.\n";
 }
 
+#subroutines
+sub readFile {
+    my ($filePath, $pushArr) = @_;
+    if(&checkFileType($filePath) eq "bson") { 
+        system("bsondump --quiet $filePath > tmp_diffee.json");
+        open my $diffeeJSON , '<', 'tmp_diffee.json' or die "Couldn't open file $filePath";
+        while(<$diffeeJSON>) {
+            if($pushArr eq "diffee") {
+                push(@diffeeLines, $_);
+            } else {
+                push(@differLines, $_);
+            }
+        }
+        close $diffeeJSON;
+    }
+
+    if(&checkFileType($filePath) eq "json") {
+        open my $diffeeJSON, '<', $filePath or die "Couldn't open file at $filePath";
+        
+        while(<$diffeeJSON>) {
+            if($pushArr eq "diffee") {
+                push(@diffeeLines, $_);
+            } else {
+                push(@differLines, $_);
+            }
+        }
+        close $diffeeJSON;
+    }
+}
 
 sub checkFileType {
     my ($path) = @_;
     if($path =~ /.bson/g) {return "bson";}
     if($path =~ /.json/g) {return "json";}
 }
-
-#TODO - 
-#make the arguments interchangeable -- allow for diffing files in any order
-#allow diffing of two bson files - not just one bson/one json
