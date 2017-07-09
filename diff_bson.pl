@@ -3,27 +3,48 @@ use strict;
 use List::Util qw[min max];
 
 
-#take in a path to a bson file and a path to a json file
+#take in a path to two bson files or one bson file and one json file or 2 json files
 my ($diffeePath, $differPath) = @ARGV;
 my @diffeeLines;
 my @differLines;
 
 #bsondump the bson file to a json file
-system("bsondump --quiet $diffeePath > output.json");
-open my $outputJSON , '<', 'output.json' or die "Couldn't open file $diffeePath";
-while(<$outputJSON>) {
-    push(@diffeeLines, $_);
+if(&checkFileType($diffeePath) eq "bson") { 
+    system("bsondump --quiet $diffeePath > tmp_diffee.json");
+    open my $diffeeJSON , '<', 'tmp_diffee.json' or die "Couldn't open file $diffeePath";
+    while(<$diffeeJSON>) {
+        push(@diffeeLines, $_);
+    }
+    close $diffeeJSON;
 }
 
-open my $differFile , '<', $differPath or die "Couldn't open file $differPath";
-while(<$differFile>) {
-    push(@differLines, $_);
+if(&checkFileType($diffeePath) eq "json") {
+    open my $diffeeJSON, '<', $diffeePath or die "Couldn't open file at $diffeePath";
+    while(<$diffeeJSON>) {
+        push(@diffeeLines, $_);
+    }
+    close $diffeeJSON;
 }
 
+if(&checkFileType($differPath) eq "bson") {
+    system("bsondump --quiet $differPath > tmp_differ.json");
+    open my $differJSON , '<', 'tmp_differ.json' or die "Couldn't open file $differPath";
+    while(<$differJSON>) {
+        push(@differLines, $_);
+    }
+    close $differPath;
+}
 
-close $outputJSON;
-unlink "";
-close $differFile;
+if(&checkFileType($differPath) eq "json") {
+    open my $differJSON , '<', $differPath or die "Couldn't open file $differPath";
+    while(<$differJSON>) {
+        push(@differLines, $_);
+    }
+    close $differPath;
+}
+
+unlink "tmp_differ.json";
+unlink "tmp_diffee.json";
 
 my $diffeeLineCount = scalar @diffeeLines;
 my $differLineCount = scalar @differLines;
@@ -68,8 +89,9 @@ if($differenceCount > 0) {
 
 
 sub checkFileType {
-    if($_ =~ /.bson/g) {"bson";}
-    if($_ =~ /.json/g) {"json";}
+    my ($path) = @_;
+    if($path =~ /.bson/g) {return "bson";}
+    if($path =~ /.json/g) {return "json";}
 }
 
 #TODO - 
