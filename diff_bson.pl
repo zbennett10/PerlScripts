@@ -57,31 +57,30 @@ if($differenceCount > 0) {
 
 #subroutines
 sub readFile {
-    my ($filePath, $pushArr) = @_;
+    my ($filePath, $diffType) = @_;
     if(&checkFileType($filePath) eq "bson") { 
-        system("bsondump --quiet $filePath > tmp_diffee.json");
-        open my $diffeeJSON , '<', 'tmp_diffee.json' or die "Couldn't open file $filePath";
-        while(<$diffeeJSON>) {
-            if($pushArr eq "diffee") {
+        system("bsondump --quiet $filePath > tmp_".$diffType.".json");
+        open my $file , '<', "tmp_".$diffType."json" or die "Couldn't open file $filePath";
+        while(<$file>) {
+            if($diffType eq "diffee") {
                 push(@diffeeLines, $_);
             } else {
                 push(@differLines, $_);
             }
         }
-        close $diffeeJSON;
+        close $file;
     }
 
     if(&checkFileType($filePath) eq "json") {
-        open my $diffeeJSON, '<', $filePath or die "Couldn't open file at $filePath";
-        
-        while(<$diffeeJSON>) {
-            if($pushArr eq "diffee") {
+        open my $file, '<', $filePath or die "Couldn't open file at $filePath";
+        while(<$file>) {
+            if($diffType eq "diffee") {
                 push(@diffeeLines, $_);
             } else {
                 push(@differLines, $_);
             }
         }
-        close $diffeeJSON;
+        close $file;
     }
 }
 
