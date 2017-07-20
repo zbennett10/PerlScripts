@@ -86,6 +86,6 @@ sub readFile {
 
 sub checkFileType {
     my ($path) = @_;
-    if($path =~ /.bson/g) {return "bson";}
-    if($path =~ /.json/g) {return "json";}
+    return "bson" if $path =~ /.bson/g;
+    return "json" if $path =~ /.json/g;
 }
