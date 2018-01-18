@@ -2,18 +2,15 @@
 use strict;
 use warnings;
 use XML::LibXML;
-use Class::CSV;
 use Data::Dumper;
 
+#get input/output filenames from stdin
 my ($kmlFileName, $csvFileName) = @ARGV;
 
-# my $csv = Class::CSV->new(
-#     fields => [qw/x y altitude name dtdid fix_rrr_ddd remarks latitude longitude exp_alt time_from_to time_to_td c1 c2 c3 c4/]
-# );
-
+#get parsed, traversable KML
 my $kmlFile = XML::LibXML->new->parse_file($kmlFileName);
-my @waypoints;
 
+#set lines
 my @x_y_alt_lines;
 my @name_lines;
 my @data_lines;
@@ -22,7 +19,6 @@ for my $coordinate_node ($kmlFile->findnodes('//*[local-name()="coordinates"]'))
     my $text = $coordinate_node->textContent;
     chomp $text;
     push @x_y_alt_lines, $text;
-    # print "Pushing... ".$coordinate_node->textContent."\n";
 }
 
 for my $name_node ($kmlFile->findnodes('//*[local-name()="name"]')) {
@@ -30,14 +26,11 @@ for my $name_node ($kmlFile->findnodes('//*[local-name()="name"]')) {
         my $text = $name_node->textContent;
         chomp $text;
         push @name_lines, $text;
-        # print "Pushing... ".$name_node->textContent."\n";
     }
 }
 
 my @data_keys = qw(dtdid fix_rrr_ddd remarks latitude longitude exp_alt time_from_to time_to_td c1 c2 c3 c4);
-
 my @ext_data_nodes = $kmlFile->findnodes('//*[local-name()="ExtendedData"]');
-
 my @all_node_key_values = ();
 
 my $node_index = 0;
@@ -88,7 +81,6 @@ foreach (@all_node_key_values) {
 }
 
 my $index = 0;
-
 my $csvString = "x,y,altitude,name,dtdid,fix_rrr_ddd,remarks,latitude,longitude,exp_alt,time_from_to,time_to_td,c1,c2,c3,c4\n";
 
 for (@name_lines) {
